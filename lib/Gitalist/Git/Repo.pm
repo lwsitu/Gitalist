@@ -3,7 +3,7 @@ use MooseX::Declare;
 class Gitalist::Git::Repo {
     use MooseX::Types::Common::String qw/NonEmptySimpleStr/;
     use MooseX::Types::Path::Class qw/Dir/;
-    use MooseX::Types::Moose qw/ArrayRef/;
+    use MooseX::Types::Moose qw/HashRef ArrayRef/;
     use aliased 'Gitalist::Git::Project';
 
     has repo_dir => (
@@ -20,14 +20,34 @@ class Gitalist::Git::Repo {
         lazy_build => 1,
     );
 
-    ## Public methods
+    has _projects_hash => (
+        is => 'rw',
+        isa => HashRef['Gitalist::Git::Project'],
+        required => 1,
+        default => sub { {} },
+        traits    => ['Hash'],
+        handles => {
+            _cache_project => 'set',
+            _project_is_cached => 'exists',
+            _uncache_project => 'get',
+        },
+    );
+
     method project (NonEmptySimpleStr $project) {
         my $path = $self->repo_dir->subdir($project)->resolve;
         $self->repo_dir->resolve; # FIXME - This needs to be called, or if repo_dir contains .., it'll explode below!
                                   #         This is a Path::Class::Dir bug, right?
         die "Directory traversal prohibited" unless $self->repo_dir->contains($path);
+        return $self->_uncache_project($project)
+            if $self->_project_is_cached($project);
+        my $path = $self->repo_dir->subdir($project);
         die "Not a valid Project" unless $self->_is_git_repo($path);
-        return Project->new( $self->repo_dir->subdir($project) );
+        my $ob = Project->new(
+            name => $project,
+            path => $self->repo_dir->subdir($project),
+        );
+        $self->_cache_project($project, $ob);
+        return $ob;
     }
 
     ## Builders
@@ -45,7 +65,9 @@ class Gitalist::Git::Repo {
             push @ret, $self->project($file);
         }
 
-        return [sort { $a->name cmp $b->name } @ret];
+        my $projects = [sort { $a->name cmp $b->name } @ret];
+        $self->_projects_hash({ map { $_->name => $_ } @$projects });
+        return $projects;
     }
 
     ## Private methods
