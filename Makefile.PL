@@ -24,6 +24,12 @@ requires 'Catalyst::Plugin::Unicode::Encoding';
 requires 'Catalyst::Action::RenderView';
 requires 'Catalyst::Component::InstancePerContext';
 requires 'Catalyst::View::TT';
+requires 'CatalystX::SimpleLogin' => '0.05';
+requires 'Catalyst::Plugin::Authentication';
+requires 'Catalyst::Plugin::Authentication::Credential::OpenID';
+requires 'Catalyst::Plugin::Session';
+requires 'Catalyst::Plugin::Sesion::Store::File';
+requires 'Catalyst::Plugin::Sesion::State::Cookie';
 
 requires 'Template';
 requires 'Template::Provider::Encoding';

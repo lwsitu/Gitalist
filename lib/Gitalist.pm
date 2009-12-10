@@ -7,6 +7,11 @@ use namespace::autoclean;
 extends 'Catalyst';
 
 use Catalyst qw/
+                +CatalystX::SimpleLogin
+                Authentication
+                Session
+                Session::Store::File
+                Session::State::Cookie
                 ConfigLoader
                 Unicode::Encoding
                 Static::Simple
@@ -20,6 +25,19 @@ __PACKAGE__->config(
     name => 'Gitalist',
     default_view => 'Default',
     default_model => 'GitRepos',
+    'Plugin::Authentication' => {
+        default => {
+            credential => {
+                class => 'OpenID',
+            },
+            store => {
+                class => 'Null',
+            },
+        },
+    },
+    'Controller::Login' => {
+         login_form_class_roles => [ 'CatalystX::SimpleLogin::Form::LoginOpenID']
+    },
 );
 
 __PACKAGE__->setup();
