@@ -1,5 +1,6 @@
 This file documents the revision history for Perl extension Gitalist.
 
+    - Require Git::PurePerl for Win32 compatibility.
     - Switch to IPC::Run::start for streamed mode, fixing RT#52658
       and the tests with FreeBSD.
 
