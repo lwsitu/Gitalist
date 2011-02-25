@@ -23,20 +23,20 @@ class Gitalist::Git::CollectionOfRepositories::FromDirectoryRecursive
 
     method _find_repos(Dir $dir) {
       return map {
-	$self->_is_git_repo($_) ? $_ : $self->_find_repos($_)
+        $self->_is_git_repo($_) ? $_ : $self->_find_repos($_)
       } grep $_->is_dir, $dir->children;
     }
 
     method _get_path_for_repository_name (NonEmptySimpleStr $name) {
       my $repo = first { $_->name eq $name } $self->repositories->flatten
-	or return;
+        or return;
       return $repo->path;
     }
 
     ## Builders
     method _build_repositories {
       return [
-	map Gitalist::Git::Repository->new($_), $self->_find_repos( $self->repo_dir )
+        map Gitalist::Git::Repository->new($_), $self->_find_repos( $self->repo_dir )
       ];
     }
 }                         # end class
