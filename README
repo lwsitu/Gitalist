@@ -2,20 +2,20 @@ NAME
     Gitalist - A modern git web viewer
 
 SYNOPSIS
-        script/gitalist_server.pl --repo_dir /home/me/code/git
+        perl script/gitalist_server.pl --repo_dir /home/me/code/git
 
 INSTALL
     As Gitalist follows the usual Perl module format the usual approach for
     installation should work, e.g.:
 
-      perl Makefile.PL
-      make
-      make test
-      make install
+        perl Makefile.PL
+        make
+        make test
+        make install
 
     or
 
-      cpan -i Gitalist
+        cpan -i Gitalist
 
     You can also check Gitalist out from its git repository and run it, in
     this case you'll additionally need the author modules, but no
@@ -83,7 +83,7 @@ INITIAL CONFIGURATION
     This means that if you check Gitalist out next to your other git
     checkouts, then starting the demo server needs no parameters at all:
 
-        Gitalist [master]$ ./script/gitalist_server.pl
+        Gitalist [master]$ perl script/gitalist_server.pl
         You can connect to your server at http://localhost:3000
 
   FOR CPAN INSTALLS
@@ -136,6 +136,39 @@ RUNNING
     This example can be seen live here:
 
         http://example.gitalist.com
+
+CONFIGURATION
+    The Gitalist config is loaded with Catalyst::Plugin::ConfigLoader and
+    the available config options are:
+
+  Model::CollectionOfRepos
+    git Path to the "git" binary.
+
+    repo_dir
+        A directory containing the directories to show.
+
+        If no repositories are found in this directory then Gitalist will
+        search recursively in that directory for repositories.
+
+    search_recursively
+        A boolean indicating whether to always search recursively for
+        repositories within "repo_dir".
+
+    whitelist
+        Path a file containing a list of repositories that can be shown.
+        Each line in the file will represent the name of a repo to show e.g
+
+          Gitalist
+          some-bare-repo.git
+
+        This is compatible with "gitweb"'s "projects.list".
+
+    export_ok
+        If provided every must contain a file of the same name to be
+        visible. This is similar to "gitweb"'s functionality.
+
+  paging
+    log The number of commits to show in the
 
   FASTCGI
     Running Gitalist in FastCGI mode requires a webserver with FastCGI
