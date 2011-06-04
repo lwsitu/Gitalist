@@ -1,16 +1,18 @@
 use MooseX::Declare;
 
-class Gitalist::Git::Repository with Gitalist::Git::HasUtils {
-    # FIXME, use Types::Path::Class and coerce
+class Gitalist::Git::Repository with (Gitalist::Git::HasUtils, Gitalist::Git::Serializable) {
+    use MooseX::Storage::Meta::Attribute::Trait::DoNotSerialize;
+
     use MooseX::Types::Common::String qw/NonEmptySimpleStr/;
-    use MooseX::Types::Path::Class qw/Dir/;
-    use MooseX::Types::Moose qw/Str Maybe Bool HashRef ArrayRef/;
-    use Gitalist::Git::Types qw/SHA1/;
+    use MooseX::Types::Moose          qw/Str Maybe Bool HashRef ArrayRef/;
+    use Gitalist::Git::Types          qw/SHA1 DateTime Dir/;
+
     use Moose::Autobox;
+    use aliased 'DateTime' => 'DT';
     use List::MoreUtils qw/any zip/;
-    use DateTime;
-    use Encode qw/decode/;
-    use I18N::Langinfo qw/langinfo CODESET/;
+    use Encode          qw/decode/;
+    use I18N::Langinfo  qw/langinfo CODESET/;
+
     use Gitalist::Git::Object::Blob;
     use Gitalist::Git::Object::Tree;
     use Gitalist::Git::Object::Commit;
@@ -20,7 +22,7 @@ class Gitalist::Git::Repository with Gitalist::Git::HasUtils {
 
     our $SHA1RE = qr/[0-9a-fA-F]{40}/;
 
-    around BUILDARGS (ClassName $class: Dir $dir) {
+    around BUILDARGS (ClassName $class: Dir $dir, Str $override_name = '') {
         # Allows us to be called as Repository->new($dir)
         # Last path component becomes $self->name
         # Full path to git objects becomes $self->path
@@ -32,8 +34,8 @@ class Gitalist::Git::Repository with Gitalist::Git::HasUtils {
             $name = $dir->dir_list(-2);
         }
         confess("Can't find a git repository at " . $dir)
-            unless ( -f $dir->file('HEAD') );
-        return $class->$orig(name => $name,
+            unless -f $dir->file('HEAD');
+        return $class->$orig(name => $override_name || $name,
                              path => $dir);
     }
 
@@ -41,7 +43,8 @@ class Gitalist::Git::Repository with Gitalist::Git::HasUtils {
                   is => 'ro', required => 1 );
 
     has path => ( isa => Dir,
-                  is => 'ro', required => 1);
+                  is => 'ro', required => 1,
+                  traits => ['DoNotSerialize'] );
 
     has description => ( isa => Str,
                          is => 'ro',
@@ -53,7 +56,7 @@ class Gitalist::Git::Repository with Gitalist::Git::HasUtils {
                    lazy_build => 1,
                );
 
-    has last_change => ( isa => Maybe['DateTime'],
+    has last_change => ( isa => Maybe[DateTime],
                          is => 'ro',
                          lazy_build => 1,
                      );
@@ -233,7 +236,7 @@ class Gitalist::Git::Repository with Gitalist::Git::HasUtils {
                 --sort=-committerdate --count=1 refs/heads
           });
         if (my ($epoch, $tz) = $output =~ /\s(\d+)\s+([+-]\d+)$/) {
-            my $dt = DateTime->from_epoch(epoch => $epoch);
+            my $dt = DT->from_epoch(epoch => $epoch);
             $dt->set_time_zone($tz);
             $last_change = $dt;
         }

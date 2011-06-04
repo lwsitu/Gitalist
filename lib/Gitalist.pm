@@ -14,7 +14,7 @@ use Catalyst qw/
                 SubRequest
 /;
 
-our $VERSION = '0.002009';
+our $VERSION = '0.003002';
 $VERSION = eval $VERSION;
 
 __PACKAGE__->config(
@@ -29,8 +29,13 @@ __PACKAGE__->setup();
 
 after prepare_path => sub {
     my ($ctx) = @_;
+    my $path = $ctx->req->uri->path;
     if ($ctx->req->param('a')) {
-        $ctx->request->uri->path('/legacy' . $ctx->request->uri->path);
+        $ctx->req->uri->path("/legacy$path");
+    }
+    
+    if($path =~ s/[.]json$// && $ctx->req->content_type eq 'application/json') {
+        $ctx->req->uri->path($path);
     }
 };
 
@@ -38,13 +43,6 @@ around uri_for => sub {
   my ($orig, $c) = (shift, shift);
   my $uri = $c->$orig(@_);
   $$uri =~ tr[&][;] if defined $uri;
-  return $uri;
-};
-
-around uri_for_action => sub {
-  my ($orig, $c) = (shift, shift);
-  my $uri = $c->$orig(@_);
-  $$uri =~ s[/fragment\b][] if defined $uri;
   return $uri;
 };
 
@@ -206,6 +204,14 @@ This example can be seen live here:
 
     http://example.gitalist.com
 
+=head2 Plack
+
+If you would like to run Gitalist under L<Plack> then one need only
+make use of L<plackup|search.cpan.org/perldoc?plackup> and the
+C<.psgi> found under C<scripts/>:
+
+    plackup script/gitalist_app.psgi
+
 =head1 CONFIGURATION
 
 The Gitalist config is loaded with L<Catalyst::Plugin::ConfigLoader>
@@ -223,8 +229,9 @@ Path to the C<git> binary.
 
 A directory containing the directories to show.
 
-If no repositories are found in this directory then Gitalist will
-search recursively in that directory for repositories.
+=item repos
+
+A list of directories containing repositories to show.
 
 =item search_recursively
 
@@ -254,7 +261,7 @@ visible. This is similar to C<gitweb>'s functionality.
 
 =item log
 
-The number of commits to show in the 
+The number of commits to show in the summary, shortlog and longlog views.
 
 =back
 
