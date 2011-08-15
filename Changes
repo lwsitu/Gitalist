@@ -1,5 +1,20 @@
 This file documents the revision history for Perl extension Gitalist.
 
+0.003005 2011-07-13
+  - Provide option to disable gravatars.
+  - Tweaks to make Gitalist fit for debian (Jonas Genannt).
+  - Fixes to enable Gitalist to run on Win32 (Christian Walde).
+  - Fix content-type of core.css handler (Christian Walde).
+
+0.003004 2011-06-07
+  - Fix dependency typo in Makefile.PL.
+
+0.003003 2011-06-06
+  - Fixed ownership assertions in t/02git_object.t (Christian Walde).
+  - Change default local config to not search recursively.
+  - Don't attempt to syntax highlight anything big.
+  - Fix for infinite loop bug in blame.
+
 0.003002 2011-05-23
   - Add JSON serialization and expose via .json (Tomas Doran).
   - Provide .psgi for Plack goodness (Francoise Dehinbo).
